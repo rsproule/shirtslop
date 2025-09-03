@@ -2,11 +2,11 @@
 
 AI-powered shirt design generator that creates custom graphics for your t-shirts and hosts on Shopify.
 
-<img src="./imgs/interface.png" alt="ShirtSlop Interface" width="300"/>
+![ShirtSlop Interface](./imgs/interface.png)
 
 The app generates a design based on your description, displays on a customizable 3D shirt model and (optionally) publishes to Shopify for sharing.
 
-<img src="./imgs/jumpman.png" alt="Example Interface" width="300"/>
+<img src="./imgs/jumpman.png" alt="Example Interface" width="400"/>
 
 Generate your own slop at [ShirtSlop.com](https://www.shirtslop.com).
 
