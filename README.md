@@ -1,18 +1,21 @@
-# InstaShirt
+# [ShirtSlop.com](https://www.shirtslop.com/)
 
-AI-powered shirt design generator that creates custom graphics for your t-shirts.
+AI-powered shirt design generator that creates custom graphics for your t-shirts and hosts on Shopify.
 
-## Quick Start
+<img src="./imgs/interface.png" alt="ShirtSlop Interface" width="300"/>
 
-1. Install dependencies: `pnpm install`
-2. Start development server: `pnpm dev`
-3. Open http://localhost:5173
+The app generates a design based on your description, displays on a customizable 3D shirt model and (optionally) publishes to Shopify for sharing.
 
-## Example
+<img src="./imgs/jumpman.png" alt="Example Interface" width="300"/>
 
-<img src="./jumpman.png" alt="Example Interface" width="300"/>
+Generate your own slop at [ShirtSlop.com](https://www.shirtslop.com).
 
-The app will generate a unique design based on your description and display it on a 3D shirt model that you can customize with different colors and placements.
+## Contributing
+ShirtSlop is built on [Echo](echo.merit.systems). 
+- Every AI generation **pays the devs.**
+- Every T-Shirt purchased **pays the devs.**
+
+Details at [terminal.merit.systems/rsproule/shirtslop](terminal.merit.systems/rsproule/shirtslop).
 
 ## Features
 
@@ -22,3 +25,9 @@ The app will generate a unique design based on your description and display it o
 - Design history
 - Multiple shirt colors
 - Texture placement options (front/back/full)
+
+## Dev
+
+1. Install dependencies: `pnpm install`
+2. Start development server: `pnpm dev`
+3. Open http://localhost:5173
