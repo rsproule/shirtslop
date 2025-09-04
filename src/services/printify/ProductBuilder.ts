@@ -93,10 +93,35 @@ export class ProductBuilder {
     productName: string,
     description: string,
     uploadedImageId: string,
+    placement: "front" | "back" = "front",
   ): CreateProductPayload {
     const shirtConfig = SHIRT_CONFIGS.cc;
 
     console.log("Creating product with shirtConfig", shirtConfig);
+    console.log("Placement:", placement);
+
+    // Determine the actual position to send to Printify
+    let printPosition: string;
+    let printScale: number;
+    let printX: number;
+    let printY: number;
+
+    switch (placement) {
+      case "back":
+        printPosition = "back";
+        printScale = shirtConfig.scale;
+        printX = shirtConfig.x;
+        printY = shirtConfig.y;
+        break;
+      case "front":
+      default:
+        printPosition = "front";
+        printScale = shirtConfig.scale;
+        printX = shirtConfig.x;
+        printY = shirtConfig.y;
+        break;
+    }
+
     return {
       title: productName,
       description,
@@ -112,13 +137,13 @@ export class ProductBuilder {
           variant_ids: shirtConfig.variants,
           placeholders: [
             {
-              position: "front",
+              position: printPosition,
               images: [
                 {
                   id: uploadedImageId,
-                  x: shirtConfig.x,
-                  y: shirtConfig.y,
-                  scale: shirtConfig.scale,
+                  x: printX,
+                  y: printY,
+                  scale: printScale,
                   angle: 0,
                 },
               ],

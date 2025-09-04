@@ -193,7 +193,7 @@ function PublishModal({
 }
 
 export function PublishButton() {
-  const { shirtData, user } = useShirtData();
+  const { shirtData, user, texturePlacement } = useShirtData();
   const {
     updateLifecycle,
     updateExternalIds,
@@ -360,6 +360,7 @@ export function PublishButton() {
         shirtData.prompt,
         confirmedProductName,
         description,
+        texturePlacement,
         (status: PublishStatus) => setPublishStatus(status),
       );
 

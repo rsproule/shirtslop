@@ -7,8 +7,8 @@ export interface TypingStats {
 }
 
 export interface ShirtData {
+  imageUrl: string;
   prompt: string;
-  imageUrl?: string;
   generatedAt?: string;
   isPartial?: boolean;
   partialIndex?: number;
@@ -16,7 +16,7 @@ export interface ShirtData {
   designId?: string; // UUID linking this to a design in the database
 }
 
-export type TexturePlacement = "front" | "back" | "full-shirt";
+export type TexturePlacement = "front" | "back";
 
 export interface ImageGenerationResponse {
   output: Array<{

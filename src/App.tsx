@@ -14,7 +14,7 @@ import { ShirtDataProvider } from "./context/ShirtDataContext";
 
 const echoConfig: EchoConfig = {
   appId: "60601628-cdb7-481e-8f7e-921981220348",
-  apiUrl: "https://echo.merit.systems",
+  baseEchoUrl: "https://echo.merit.systems",
   // rfs local testing
   // appId: "0e173291-6d49-49e4-8163-937d25ea7e34",
   // apiUrl: "http://localhost:3000",
