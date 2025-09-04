@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
-/* Import Comic Sans font */
-@import url("https://fonts.googleapis.com/css2?family=Comic+Sans+MS:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Autour+One&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
@@ -220,18 +218,17 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     letter-spacing: var(--tracking-normal);
+    font-family: "Autour One", ui-sans-serif, system-ui, sans-serif;
   }
 }
 
 @layer components {
-  .font-comic {
-    font-family:
-      "Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive !important;
-  }
-
   /* Ripple Loader */
   .ripple-loader {
     --cell-size: 52px;

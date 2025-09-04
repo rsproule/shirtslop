@@ -13,8 +13,13 @@
     "api-dev": "vercel dev"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.3",
+    "@ai-sdk/google": "^2.0.6",
+    "@ai-sdk/openai": "2.0.0-beta.16",
     "@hookform/resolvers": "^5.2.1",
+    "@merit-systems/echo-react-sdk": "1.0.17",
     "@radix-ui/react-dialog": "^1.1.14",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toggle": "^1.1.9",
@@ -24,7 +29,7 @@
     "@react-three/fiber": "^9.3.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/node": "^5.3.10",
-    "@zdql/echo-react-sdk": "^0.1.26",
+    "ai": "5.0.0-beta.34",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dexie": "^4.0.11",

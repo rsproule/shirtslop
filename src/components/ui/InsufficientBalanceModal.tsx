@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useEcho } from "@zdql/echo-react-sdk";
+import { useEcho } from "@merit-systems/echo-react-sdk";
 import { ExternalLinkIcon } from "lucide-react";
 import {
   Dialog,

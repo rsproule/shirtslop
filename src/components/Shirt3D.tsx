@@ -1,7 +1,7 @@
 import { useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useShirtData } from "@/context/ShirtDataContext";
+import { useShirtData } from "@/context/useShirtData";
 import * as THREE from "three";
 
 type TexturePlacement = "front" | "back";

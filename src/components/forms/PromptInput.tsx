@@ -1,6 +1,6 @@
 import { Textarea } from "@/components/ui/textarea";
-import { useShirtData } from "@/context/ShirtDataContext";
-import { useRef, useEffect, useState } from "react";
+import { useShirtData } from "@/context/useShirtData";
+import { useEffect, useRef, useState } from "react";
 
 interface PromptInputProps {
   value: string;
@@ -10,6 +10,7 @@ interface PromptInputProps {
   fullPrompt?: string; // The complete prompt including system prompt and enhancements
   activeThemes?: string[];
   onThemeRemove?: (theme: string) => void;
+  onImagePaste?: (base64: string) => void;
 }
 
 export function PromptInput({
@@ -20,17 +21,59 @@ export function PromptInput({
   fullPrompt,
   activeThemes = [],
   onThemeRemove,
+  onImagePaste,
 }: PromptInputProps) {
-  const { isAuthenticated } = useShirtData();
+  const { user } = useShirtData();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showTooltip, setShowTooltip] = useState(false);
 
+  // Helper function to convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Extract base64 data without the data URL prefix
+        const base64 = result.split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Handle paste events to capture images
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    if (!user || !onImagePaste) return;
+
+    const items = e.clipboardData.items;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+
+        if (file) {
+          try {
+            const base64 = await fileToBase64(file);
+            onImagePaste(base64);
+          } catch (error) {
+            console.error("Failed to process pasted image:", error);
+          }
+        }
+        break;
+      }
+    }
+  };
+
   // Auto-focus the textarea when component mounts and user is authenticated
   useEffect(() => {
-    if (isAuthenticated && textareaRef.current) {
+    if (user && textareaRef.current) {
       textareaRef.current.focus();
     }
-  }, [isAuthenticated]);
+  }, [user]);
 
   // Auto-resize textarea based on content
   useEffect(() => {
@@ -52,13 +95,14 @@ export function PromptInput({
           value={value}
           onChange={onChange}
           onKeyDown={onKeyDown}
+          onPaste={handlePaste}
           placeholder={placeholder}
           className="bg-muted/50 min-h-32 w-full resize-none overflow-hidden rounded-lg border-0 p-4 text-base shadow-none transition-shadow duration-200 focus:ring-0 sm:text-xl"
-          disabled={!isAuthenticated}
+          disabled={!user}
         />
 
         {/* Active Theme Chips - Desktop */}
-        {activeThemes.length > 0 && isAuthenticated && (
+        {activeThemes.length > 0 && user && (
           <>
             {/* Desktop: Show individual theme chips */}
             <div className="absolute bottom-3 left-3 hidden flex-wrap gap-1 sm:flex">
@@ -88,7 +132,7 @@ export function PromptInput({
         )}
 
         {/* Full Prompt Tooltip - Triggered by +n indicator */}
-        {fullPrompt && isAuthenticated && activeThemes.length > 0 && (
+        {fullPrompt && user && activeThemes.length > 0 && (
           <div className="absolute right-3 bottom-3">
             <div className="relative">
               <button

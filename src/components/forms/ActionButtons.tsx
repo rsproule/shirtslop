@@ -1,5 +1,5 @@
 import { PulsatingButton } from "@/components/magicui/pulsating-button";
-import { useShirtData } from "@/context/ShirtDataContext";
+import { useShirtData } from "@/context/useShirtData";
 
 interface ActionButtonsProps {
   onGenerate: (enhancedPrompt?: string) => void;
@@ -10,16 +10,16 @@ export function ActionButtons({
   onGenerate,
   promptLength,
 }: ActionButtonsProps) {
-  const { isAuthenticated } = useShirtData();
+  const { user } = useShirtData();
 
   const handleGenerate = () => {
     console.log(
       "Generate button clicked - isAuthenticated:",
-      isAuthenticated,
+      !!user,
       "promptLength:",
       promptLength,
     );
-    if (!isAuthenticated) {
+    if (!user) {
       alert("Please sign in to generate shirt designs");
       return;
     }
@@ -31,11 +31,11 @@ export function ActionButtons({
       <PulsatingButton
         onClick={handleGenerate}
         onTouchEnd={handleGenerate}
-        disabled={!isAuthenticated || promptLength < 10}
-        disabledAnimation={!isAuthenticated || promptLength < 10}
+        disabled={!user || promptLength < 10}
+        disabledAnimation={!user || promptLength < 10}
         pulseColor="var(--primary-light)"
         className={`text-primary-foreground touch-manipulation ${
-          !isAuthenticated || promptLength < 10
+          !user || promptLength < 10
             ? "bg-muted cursor-not-allowed"
             : "bg-primary"
         }`}

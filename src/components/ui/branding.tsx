@@ -42,13 +42,7 @@ export function Branding({
           alt="ShirtSlop Logo"
           className={`${classes.logo} w-auto object-contain drop-shadow-lg`}
         />
-        <span
-          className={`${classes.text} font-bold tracking-tight text-gray-900`}
-          style={{
-            fontFamily:
-              "Comic Sans MS, Comic Sans, Chalkboard SE, Comic Neue, cursive",
-          }}
-        >
+        <span className={`${classes.text} font-bold text-gray-800`}>
           ShirtSlop
         </span>
       </div>

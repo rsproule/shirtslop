@@ -4,7 +4,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useShirtData } from "@/context/ShirtDataContext";
+import { useShirtData } from "@/context/useShirtData";
 
 const SHIRT_COLORS = [
   { name: "White", color: "#f8f9fa", description: "Off-white" },

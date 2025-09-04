@@ -8,8 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useShirtData } from "@/context/ShirtDataContext";
+import { useShirtData } from "@/context/useShirtData";
 import { useShirtHistory } from "@/hooks/useShirtHistory";
+import { PRODUCT_DESCRIPTION_TEMPLATE } from "@/lib/productDescription";
+import { SHOPIFY_URL } from "@/lib/utils";
 import { db, ImageLifecycleState } from "@/services/db";
 import { generateDataUrlHash, getPublishedProduct } from "@/services/imageHash";
 import { printifyService } from "@/services/printify";
@@ -20,9 +22,7 @@ import {
   Loader2,
   Share2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { PRODUCT_DESCRIPTION_TEMPLATE } from "@/lib/productDescription";
-import { SHOPIFY_URL } from "@/lib/utils";
+import { useCallback, useEffect, useState } from "react";
 
 type PublishStatus =
   | "processing"
@@ -193,12 +193,13 @@ function PublishModal({
 }
 
 export function PublishButton() {
+  const { shirtData, user, texturePlacement } = useShirtData();
   const {
-    shirtData,
-    user,
-    texturePlacement,
-  } = useShirtData();
-  const { updateLifecycle, updateExternalIds, getByHash } = useShirtHistory();
+    updateLifecycle,
+    updateExternalIds,
+    getByHash,
+    getVersionsByDesignId,
+  } = useShirtHistory();
   const [showModal, setShowModal] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string>();
@@ -211,6 +212,46 @@ export function PublishButton() {
     shopifyUrl?: string;
     productName: string;
   } | null>(null);
+
+  // Unified checker that consults both new and legacy storage
+  const computePublishedStatus = useCallback(async () => {
+    if (!shirtData?.imageUrl) {
+      setAlreadyPublished(null);
+      return;
+    }
+
+    try {
+      const imageHash = await generateDataUrlHash(shirtData.imageUrl);
+
+      // Prefer the simple publishedProducts table
+      const publishedProduct = await db.publishedProducts.get(imageHash);
+      if (publishedProduct) {
+        setAlreadyPublished({
+          shopifyUrl: publishedProduct.shopifyUrl,
+          productName: publishedProduct.productName,
+        });
+        return;
+      }
+
+      // Fallback to legacy shirtHistory check
+      const legacy = await getPublishedProduct(imageHash);
+      if (legacy) {
+        setAlreadyPublished({
+          shopifyUrl: legacy.shopifyUrl,
+          productName: legacy.productName,
+        });
+        return;
+      }
+
+      setAlreadyPublished(null);
+    } catch (error) {
+      setAlreadyPublished(null);
+    }
+  }, [shirtData?.imageUrl]);
+
+  useEffect(() => {
+    void computePublishedStatus();
+  }, [computePublishedStatus]);
 
   // Load design title from database
   useEffect(() => {
@@ -240,39 +281,7 @@ export function PublishButton() {
     loadDesignTitle();
   }, [shirtData?.imageUrl, shirtData?.prompt, getByHash]);
 
-  // Function to check published status
-  const checkPublishedStatus = async () => {
-    if (!shirtData?.imageUrl) {
-      setAlreadyPublished(null);
-      return;
-    }
-
-    try {
-      const imageHash = await generateDataUrlHash(shirtData.imageUrl);
-      const publishedProduct = await getPublishedProduct(imageHash);
-
-      if (publishedProduct) {
-        console.log(
-          "📦 Found already published product:",
-          publishedProduct.productName,
-        );
-        setAlreadyPublished({
-          shopifyUrl: publishedProduct.shopifyUrl,
-          productName: publishedProduct.productName,
-        });
-      } else {
-        setAlreadyPublished(null);
-      }
-    } catch (error) {
-      console.warn("Failed to check published status:", error);
-      setAlreadyPublished(null);
-    }
-  };
-
-  // Check if this image is already published when shirtData changes
-  useEffect(() => {
-    checkPublishedStatus();
-  }, [shirtData?.imageUrl]);
+  // (second checker removed; unified into computePublishedStatus)
 
   // Prevent navigation/refresh during publishing
   useEffect(() => {
@@ -316,7 +325,30 @@ export function PublishButton() {
       setPublishStatus("uploading");
       await updateLifecycle(imageHash, ImageLifecycleState.UPLOADING);
 
-      const description = PRODUCT_DESCRIPTION_TEMPLATE(user, shirtData.prompt);
+      // Get the prompt chain from the latest version
+      let promptChain: string[] | undefined;
+      if (shirtData.designId) {
+        try {
+          const versions = await getVersionsByDesignId(shirtData.designId);
+          const latestVersion = versions.find(v => v.isLatestVersion);
+          promptChain = latestVersion?.promptChain;
+          console.log(
+            "📝 Using prompt chain for product description:",
+            promptChain,
+          );
+        } catch (error) {
+          console.warn(
+            "Failed to get prompt chain for product description:",
+            error,
+          );
+        }
+      }
+
+      const description = PRODUCT_DESCRIPTION_TEMPLATE(
+        user,
+        shirtData.prompt,
+        promptChain,
+      );
 
       // Update lifecycle to PUBLISHING before creating product
       setPublishStatus("creating");
@@ -344,6 +376,19 @@ export function PublishButton() {
           printifyProductId: result.product.id,
           shopifyUrl: result.product.external?.handle,
         });
+
+        // Save to published products table
+        const publishedProduct = {
+          hash: imageHash,
+          productName: confirmedProductName,
+          printifyProductId: result.product.id,
+          shopifyUrl: result.product.external?.handle || "",
+          publishedAt: new Date().toISOString(),
+          createdBy: user?.id,
+        };
+
+        await db.publishedProducts.put(publishedProduct);
+        console.log("📦 Saved published product:", publishedProduct);
 
         // Update lifecycle to PUBLISHED
         await updateLifecycle(imageHash, ImageLifecycleState.PUBLISHED);
@@ -394,7 +439,7 @@ export function PublishButton() {
 
     // If we just published successfully, update the navbar button state
     if (isPublished) {
-      await checkPublishedStatus();
+      await computePublishedStatus();
     }
 
     setIsPublished(false);

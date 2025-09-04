@@ -1,4 +1,4 @@
-import { useEchoOpenAI } from "@zdql/echo-react-sdk";
+import { useEchoOpenAI } from "@merit-systems/echo-react-sdk";
 
 export interface NameGenerationService {
   generateName: (prompt: string) => Promise<string>;

@@ -12,6 +12,8 @@ export interface ShirtData {
   generatedAt?: string;
   isPartial?: boolean;
   partialIndex?: number;
+  responseId?: string; // For image editing functionality
+  designId?: string; // UUID linking this to a design in the database
 }
 
 export type TexturePlacement = "front" | "back";

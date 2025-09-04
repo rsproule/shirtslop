@@ -1,13 +1,13 @@
 import { Branding } from "@/components/ui/branding";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useShirtData } from "@/context/ShirtDataContext";
+import { useShirtData } from "@/context/useShirtData";
 import { SHOPIFY_URL } from "@/lib/utils";
-import { EchoSignIn, EchoTokenPurchase } from "@zdql/echo-react-sdk";
+import { EchoSignIn, EchoTokenPurchase } from "@merit-systems/echo-react-sdk";
 import { Store } from "lucide-react";
 
 export function Navbar() {
-  const { isAuthenticated, isAuthLoading } = useShirtData();
+  const { user, isAuthLoading } = useShirtData();
 
   return (
     <nav className="border-border border-b">
@@ -24,9 +24,9 @@ export function Navbar() {
             <Store className="h-4 w-4" />
           </Button>
 
-          {isAuthLoading ? (
+          {isAuthLoading && !user ? (
             <Skeleton className="h-8 w-24" />
-          ) : isAuthenticated ? (
+          ) : user !== null ? (
             <EchoTokenPurchase />
           ) : (
             <EchoSignIn />

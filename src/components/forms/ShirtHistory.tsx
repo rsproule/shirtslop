@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useShirtData } from "@/context/ShirtDataContext";
-import {
-  useShirtHistory,
-  type ShirtHistoryItem,
-} from "@/hooks/useShirtHistory";
+import { useShirtData } from "@/context/useShirtData";
+import { useShirtHistory } from "@/hooks/useShirtHistory";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "../ui/skeleton";
+import type { ShirtHistoryItem } from "@/services/db";
 
 export function ShirtHistory() {
   const { history, isLoading, clearHistory, removeFromHistory, setLastViewed } =
@@ -60,6 +58,9 @@ export function ShirtHistory() {
         item.createdAt || item.generatedAt || new Date().toISOString(),
       isPartial: false,
       partialIndex: -1,
+      // Include the crucial fields for ViewPage functionality
+      designId: item.designId,
+      responseId: item.responseId,
     };
 
     // Track this as the last viewed shirt
