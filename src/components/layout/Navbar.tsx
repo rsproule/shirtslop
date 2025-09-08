@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useShirtData } from "@/context/useShirtData";
 import { SHOPIFY_URL } from "@/lib/utils";
-import { EchoSignIn, EchoTokenPurchase } from "@merit-systems/echo-react-sdk";
+import { EchoSignIn, EchoTokens } from "@merit-systems/echo-react-sdk";
 import { Store } from "lucide-react";
 
 export function Navbar() {
@@ -27,7 +27,7 @@ export function Navbar() {
           {isAuthLoading && !user ? (
             <Skeleton className="h-8 w-24" />
           ) : user !== null ? (
-            <EchoTokenPurchase />
+            <EchoTokens />
           ) : (
             <EchoSignIn />
           )}

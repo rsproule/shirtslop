@@ -21,8 +21,8 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1(react-hook-form@7.62.0(react@19.1.1))
       '@merit-systems/echo-react-sdk':
-        specifier: 1.0.17
-        version: 1.0.17(openai@5.12.2(zod@4.0.17))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@4.0.17)
+        specifier: 1.0.19
+        version: 1.0.19(openai@5.12.2(zod@4.0.17))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@4.0.17)
       '@radix-ui/react-dialog':
         specifier: ^1.1.14
         version: 1.1.15(@types/react-dom@19.1.7(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -644,8 +644,8 @@ packages:
   '@mediapipe/tasks-vision@0.10.17':
     resolution: {integrity: sha512-CZWV/q6TTe8ta61cZXjfnnHsfWIdFhms03M9T7Cnd5y2mdpylJM0rF1qRq+wsQVRMLz1OYPVEBU9ph2Bx8cxrg==}
 
-  '@merit-systems/echo-react-sdk@1.0.17':
-    resolution: {integrity: sha512-6rshqqUmigP60MBZDVURRylk+/qdLElEsGX9nDa1Y9UYXowIbnLXTzhB/7m4Euec0sueyWiFAJEGbKsBhlinIw==}
+  '@merit-systems/echo-react-sdk@1.0.19':
+    resolution: {integrity: sha512-drJ+fX25LitScuQCfEOYbcLWXUbjiuXvCJwaQPLqf6pxuhpKJa+GZJTIcHpALnGvGED2n9ITe/uGRIVBkA1eFQ==}
     peerDependencies:
       openai: ^4.0.0 || ^5.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -654,8 +654,8 @@ packages:
       openai:
         optional: true
 
-  '@merit-systems/echo-typescript-sdk@1.0.8':
-    resolution: {integrity: sha512-97AgOYiP7mmlPz0lUOHBn8mza/PGLGixIEBcE9XI+xi0PJshbhtOANVNKx1EPK2zuo0kUl3vII36RaZyHWmhEA==}
+  '@merit-systems/echo-typescript-sdk@1.0.13':
+    resolution: {integrity: sha512-JB7hG2Ov+ReTX58J8eAwUqCSD+5//Eow5Eo2YsDu5jsNjsCujXMWzCFwmNPPO4/95FQ4i4EZc/EHW1B7CI8fqw==}
 
   '@monogrid/gainmap-js@3.1.0':
     resolution: {integrity: sha512-Obb0/gEd/HReTlg8ttaYk+0m62gQJmCblMOjHSMHRrBP2zdfKMHLCRbh/6ex9fSUJMKdjjIEiohwkbGD3wj2Nw==}
@@ -673,6 +673,13 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
+
+  '@openrouter/ai-sdk-provider@1.2.0':
+    resolution: {integrity: sha512-stuIwq7Yb7DNmk3GuCtz+oS3nZOY4TXEV3V5KsknDGQN7Fpu3KRMQVWRc1J073xKdf0FC9EHOctSyzsACmp5Ag==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      ai: ^5.0.0
+      zod: ^3.24.1 || ^v4
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -3448,10 +3455,10 @@ snapshots:
 
   '@mediapipe/tasks-vision@0.10.17': {}
 
-  '@merit-systems/echo-react-sdk@1.0.17(openai@5.12.2(zod@4.0.17))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@4.0.17)':
+  '@merit-systems/echo-react-sdk@1.0.19(openai@5.12.2(zod@4.0.17))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(zod@4.0.17)':
     dependencies:
       '@ai-sdk/react': 2.0.23(react@19.1.1)(zod@4.0.17)
-      '@merit-systems/echo-typescript-sdk': 1.0.8(zod@4.0.17)
+      '@merit-systems/echo-typescript-sdk': 1.0.13(zod@4.0.17)
       ai: 5.0.23(zod@4.0.17)
       dompurify: 3.2.6
       oidc-client-ts: 3.3.0
@@ -3463,11 +3470,12 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  '@merit-systems/echo-typescript-sdk@1.0.8(zod@4.0.17)':
+  '@merit-systems/echo-typescript-sdk@1.0.13(zod@4.0.17)':
     dependencies:
       '@ai-sdk/anthropic': 2.0.6(zod@4.0.17)
       '@ai-sdk/google': 2.0.8(zod@4.0.17)
       '@ai-sdk/openai': 2.0.20(zod@4.0.17)
+      '@openrouter/ai-sdk-provider': 1.2.0(ai@5.0.23(zod@4.0.17))(zod@4.0.17)
       ai: 5.0.23(zod@4.0.17)
     transitivePeerDependencies:
       - zod
@@ -3488,6 +3496,11 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
+
+  '@openrouter/ai-sdk-provider@1.2.0(ai@5.0.23(zod@4.0.17))(zod@4.0.17)':
+    dependencies:
+      ai: 5.0.23(zod@4.0.17)
+      zod: 4.0.17
 
   '@opentelemetry/api@1.9.0': {}
 
