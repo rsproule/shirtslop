@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useShirtData } from "@/context/useShirtData";
 import { useShirtHistory } from "@/hooks/useShirtHistory";
 import { PRODUCT_DESCRIPTION_TEMPLATE } from "@/lib/productDescription";
@@ -15,6 +16,8 @@ import { SHOPIFY_URL } from "@/lib/utils";
 import { db, ImageLifecycleState } from "@/services/db";
 import { generateDataUrlHash, getPublishedProduct } from "@/services/imageHash";
 import { printifyService } from "@/services/printify";
+import { ProductBuilder } from "@/services/printify/ProductBuilder";
+import type { ShirtStyle } from "@/services/printify/types";
 import {
   AlertCircle,
   CheckCircle2,
@@ -40,7 +43,7 @@ interface PublishModalProps {
   error?: string;
   shopifyUrl?: string;
   isPublished?: boolean;
-  onPublish?: (productName: string) => void;
+  onPublish?: (productName: string, shirtStyle: ShirtStyle) => void;
 }
 
 function PublishModal({
@@ -56,6 +59,7 @@ function PublishModal({
 }: PublishModalProps) {
   const [productName, setProductName] = useState("");
   const [hasUserEdited, setHasUserEdited] = useState(false);
+  const [shirtStyle, setShirtStyle] = useState<ShirtStyle>("standard");
 
   // Initialize product name when modal opens, but don't override user edits
   useEffect(() => {
@@ -69,6 +73,7 @@ function PublishModal({
     if (!isOpen) {
       setHasUserEdited(false);
       setProductName("");
+      setShirtStyle("standard");
     }
   }, [isOpen]);
 
@@ -76,6 +81,11 @@ function PublishModal({
     setProductName(e.target.value);
     setHasUserEdited(true);
   };
+
+  const streetInfo = ProductBuilder.getShirtStyleInfo("street");
+  const standardInfo = ProductBuilder.getShirtStyleInfo("standard");
+  const priceDiff = streetInfo.price - standardInfo.price;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white sm:max-w-md">
@@ -93,6 +103,44 @@ function PublishModal({
         <div className="space-y-4">
           {!isPublishing && !isPublished && !error && (
             <div className="space-y-3">
+              <div>
+                <Label className="text-sm font-medium">Shirt Style</Label>
+                <ToggleGroup
+                  type="single"
+                  value={shirtStyle}
+                  onValueChange={(value) => {
+                    if (value) setShirtStyle(value as ShirtStyle);
+                  }}
+                  className="mt-2 w-full"
+                  variant="outline"
+                >
+                  <ToggleGroupItem
+                    value="standard"
+                    className="flex-1 flex-col gap-1 py-3"
+                  >
+                    <span className="font-medium">Standard</span>
+                    <span className="text-xs text-muted-foreground">
+                      {standardInfo.priceFormatted}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Comfort Colors
+                    </span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="street"
+                    className="flex-1 flex-col gap-1 py-3"
+                  >
+                    <span className="font-medium">Street Style</span>
+                    <span className="text-xs text-muted-foreground">
+                      {streetInfo.priceFormatted} (+${(priceDiff / 100).toFixed(2)})
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Shaka Wear
+                    </span>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+
               <div>
                 <Label htmlFor="productName" className="text-sm font-medium">
                   Product Name
@@ -174,7 +222,7 @@ function PublishModal({
                 Cancel
               </Button>
               <Button
-                onClick={() => onPublish?.(productName)}
+                onClick={() => onPublish?.(productName, shirtStyle)}
                 disabled={!productName.trim()}
               >
                 <Share2 className="mr-2 h-4 w-4" />
@@ -309,7 +357,7 @@ export function PublishButton() {
     setShowModal(true);
   };
 
-  const handleConfirmPublish = async (confirmedProductName: string) => {
+  const handleConfirmPublish = async (confirmedProductName: string, selectedShirtStyle: ShirtStyle) => {
     if (!shirtData?.imageUrl || !shirtData?.prompt) return;
 
     setIsPublishing(true);
@@ -348,6 +396,7 @@ export function PublishButton() {
         user,
         shirtData.prompt,
         promptChain,
+        selectedShirtStyle,
       );
 
       // Update lifecycle to PUBLISHING before creating product
@@ -361,6 +410,7 @@ export function PublishButton() {
         confirmedProductName,
         description,
         texturePlacement,
+        selectedShirtStyle,
         (status: PublishStatus) => setPublishStatus(status),
       );
 
@@ -385,6 +435,7 @@ export function PublishButton() {
           shopifyUrl: result.product.external?.handle || "",
           publishedAt: new Date().toISOString(),
           createdBy: user?.id,
+          shirtStyle: selectedShirtStyle,
         };
 
         await db.publishedProducts.put(publishedProduct);
@@ -393,9 +444,10 @@ export function PublishButton() {
         // Update lifecycle to PUBLISHED
         await updateLifecycle(imageHash, ImageLifecycleState.PUBLISHED);
 
-        // Update publishedAt timestamp
+        // Update publishedAt timestamp and shirt style
         await db.shirtHistory.update(imageHash, {
           publishedAt: new Date().toISOString(),
+          shirtStyle: selectedShirtStyle,
         });
 
         console.log("💾 Updated published product in database:", {
