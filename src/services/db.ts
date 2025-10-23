@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from "dexie";
+import type { ShirtStyle } from "./printify/types";
 
 export const ImageLifecycleState = {
   DRAFTED: "drafted", // Generated locally, not uploaded anywhere
@@ -27,6 +28,7 @@ export interface ShirtDesign {
   printifyProductId?: string; // Printify product ID
   shopifyProductId?: string; // Shopify product ID
   shopifyUrl?: string; // Direct Shopify store link
+  shirtStyle?: ShirtStyle; // Shirt style used for this design
 }
 
 // Individual version of a design - one per generated image
@@ -61,6 +63,7 @@ export interface PublishedProduct {
   shopifyUrl: string; // Direct Shopify store URL
   publishedAt: string; // When it was published
   createdBy?: string; // User ID who published it (optional)
+  shirtStyle?: ShirtStyle; // Shirt style used for this product
 }
 
 export interface ShirtHistoryItem {
@@ -99,6 +102,7 @@ export interface ShirtHistoryItem {
   // Publishing metadata
   publishedAt?: string;
   publishError?: string; // Last publishing error if any
+  shirtStyle?: ShirtStyle; // Shirt style used for publication
 
   // Legacy fields for backward compatibility
   id?: string; // Will be same as hash
@@ -318,5 +322,52 @@ db.version(5).stores({
     "hash, designId, versionNumber, createdAt, isLatestVersion, promptChain", // Versions table
   publishedProducts: "hash, publishedAt, printifyProductId", // Simple published tracking
 });
+
+// Version 6: Add shirtStyle field to track which shirt type was used
+db.version(6)
+  .stores({
+    shirtHistory:
+      "hash, createdAt, lifecycle, printifyProductId, shopifyProductId, designId, versionNumber, isLatestVersion, shirtStyle",
+    promptHistory: "id, timestamp",
+    designs: "designId, createdAt, updatedAt, lifecycle, shirtStyle",
+    versions:
+      "hash, designId, versionNumber, createdAt, isLatestVersion, promptChain",
+    publishedProducts: "hash, publishedAt, printifyProductId, shirtStyle",
+  })
+  .upgrade(async tx => {
+    console.log("Adding shirtStyle field to existing records...");
+
+    // Set default 'standard' for all existing published products
+    const publishedProducts = await tx.table("publishedProducts").toArray();
+    for (const product of publishedProducts) {
+      if (!product.shirtStyle) {
+        await tx.table("publishedProducts").update(product.hash, {
+          shirtStyle: "standard" as ShirtStyle,
+        });
+      }
+    }
+
+    // Set default 'standard' for all existing designs
+    const designs = await tx.table("designs").toArray();
+    for (const design of designs) {
+      if (!design.shirtStyle && design.lifecycle === "published") {
+        await tx.table("designs").update(design.designId, {
+          shirtStyle: "standard" as ShirtStyle,
+        });
+      }
+    }
+
+    // Set default 'standard' for all existing published shirt history items
+    const historyItems = await tx.table("shirtHistory").toArray();
+    for (const item of historyItems) {
+      if (!item.shirtStyle && item.lifecycle === "published") {
+        await tx.table("shirtHistory").update(item.hash, {
+          shirtStyle: "standard" as ShirtStyle,
+        });
+      }
+    }
+
+    console.log("ShirtStyle migration completed");
+  });
 
 export { db };
