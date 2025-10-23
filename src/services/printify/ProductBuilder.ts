@@ -1,5 +1,6 @@
 // Note: createProductIdentifier is used by the main service, not directly here
 
+import type { ShirtStyle } from "./types";
 // Shirt configuration presets
 interface ShirtConfig {
   name: string;
@@ -94,8 +95,9 @@ export class ProductBuilder {
     description: string,
     uploadedImageId: string,
     placement: "front" | "back" = "front",
+    shirtStyle: ShirtStyle = "standard",
   ): CreateProductPayload {
-    const shirtConfig = SHIRT_CONFIGS.cc;
+    const shirtConfig = shirtStyle === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
 
     console.log("Creating product with shirtConfig", shirtConfig);
     console.log("Placement:", placement);
@@ -159,5 +161,28 @@ export class ProductBuilder {
    */
   static getShirtConfigs(): Record<string, ShirtConfig> {
     return SHIRT_CONFIGS;
+  }
+
+  /**
+   * Get shirt configuration by style
+   */
+  static getShirtConfig(style: ShirtStyle): ShirtConfig {
+    return style === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
+  }
+
+  /**
+   * Get display information for a shirt style
+   */
+  static getShirtStyleInfo(style: ShirtStyle): {
+    displayName: string;
+    price: number;
+    priceFormatted: string;
+  } {
+    const config = this.getShirtConfig(style);
+    return {
+      displayName: style === "street" ? "Street Style" : "Standard",
+      price: config.price,
+      priceFormatted: `$${(config.price / 100).toFixed(2)}`,
+    };
   }
 }

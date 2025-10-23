@@ -2,6 +2,13 @@
  * Shared type definitions for Printify service integration
  */
 
+/**
+ * Shirt style options available to users
+ * - street: Shaka Wear thick streetwear style shirts ($35)
+ * - standard: Comfort Colors standard shirts ($25)
+ */
+export type ShirtStyle = 'street' | 'standard';
+
 export interface PrintifyImage {
   id: string;
   src: string;
