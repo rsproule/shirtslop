@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import Printify from "printify-sdk-js";
 
 // Configure body parser for larger payloads
 export const config = {
@@ -8,6 +9,28 @@ export const config = {
     },
   },
 };
+
+// Initialize Printify SDK client
+let printifyClient: Printify | null = null;
+
+function getPrintifyClient(): Printify {
+  const PRINTIFY_TOKEN = process.env.PRINTIFY_TOKEN;
+  const SHOP_ID = process.env.PRINTIFY_SHOP_ID;
+
+  if (!PRINTIFY_TOKEN || !SHOP_ID) {
+    throw new Error("Missing Printify credentials");
+  }
+
+  if (!printifyClient) {
+    printifyClient = new Printify({
+      accessToken: PRINTIFY_TOKEN,
+      shopId: SHOP_ID,
+      enableLogging: process.env.NODE_ENV !== "production",
+    });
+  }
+
+  return printifyClient;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -28,26 +51,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { action } = req.query as { action: string };
-  const PRINTIFY_TOKEN = process.env.PRINTIFY_TOKEN;
-  const SHOP_ID = process.env.PRINTIFY_SHOP_ID;
-
-  if (!PRINTIFY_TOKEN || !SHOP_ID) {
-    return res.status(500).json({ error: "Missing Printify credentials" });
-  }
 
   try {
+    const printify = getPrintifyClient();
+
     switch (action) {
       case "upload":
-        return await handleUpload(req, res, PRINTIFY_TOKEN);
+        return await handleUpload(req, res, printify);
 
       case "create-product":
-        return await handleCreateProduct(req, res, PRINTIFY_TOKEN, SHOP_ID);
+        return await handleCreateProduct(req, res, printify);
 
       case "publish":
-        return await handlePublish(req, res, PRINTIFY_TOKEN, SHOP_ID);
+        return await handlePublish(req, res, printify);
 
       case "get-product":
-        return await handleGetProduct(req, res, PRINTIFY_TOKEN, SHOP_ID);
+        return await handleGetProduct(req, res, printify);
 
       default:
         return res.status(400).json({ error: "Invalid action" });
@@ -61,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function handleUpload(
   req: VercelRequest,
   res: VercelResponse,
-  token: string,
+  printify: Printify,
 ) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -72,68 +91,45 @@ async function handleUpload(
   // Extract base64 from data URL (data:image/png;base64,...)
   const base64Data = imageUrl.split(",")[1];
 
-  const payload = {
-    file_name: "design.png",
-    contents: base64Data,
-  };
+  try {
+    const result = await printify.uploads.uploadImage({
+      file_name: "design.png",
+      contents: base64Data,
+    });
 
-  const response = await fetch(
-    "https://api.printify.com/v1/uploads/images.json",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    },
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Upload failed: ${response.status} - ${error}`);
+    return res.json(result);
+  } catch (error) {
+    console.error("Upload failed:", error);
+    throw new Error(
+      `Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
-
-  const result = await response.json();
-  return res.json(result);
 }
 
 async function handleCreateProduct(
   req: VercelRequest,
   res: VercelResponse,
-  token: string,
-  shopId: string,
+  printify: Printify,
 ) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const response = await fetch(
-    `https://api.printify.com/v1/shops/${shopId}/products.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(req.body),
-    },
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Create product failed: ${response.status} - ${error}`);
+  try {
+    const result = await printify.products.create(req.body);
+    return res.json(result);
+  } catch (error) {
+    console.error("Create product failed:", error);
+    throw new Error(
+      `Create product failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
-
-  const result = await response.json();
-  return res.json(result);
 }
 
 async function handlePublish(
   req: VercelRequest,
   res: VercelResponse,
-  token: string,
-  shopId: string,
+  printify: Printify,
 ) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -141,57 +137,40 @@ async function handlePublish(
 
   const { productId } = req.body as { productId: string };
 
-  const response = await fetch(
-    `https://api.printify.com/v1/shops/${shopId}/products/${productId}/publish.json`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: true,
-        description: true,
-        images: true,
-        variants: true,
-        tags: true,
-        keyFeatures: true,
-        shipping_template: true,
-      }),
-    },
-  );
+  try {
+    const result = await printify.products.publishOne(productId, {
+      title: true,
+      description: true,
+      images: true,
+      variants: true,
+      tags: true,
+      keyFeatures: true,
+      shipping_template: true,
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Publish failed: ${response.status} - ${error}`);
+    return res.json(result);
+  } catch (error) {
+    console.error("Publish failed:", error);
+    throw new Error(
+      `Publish failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
-
-  const result = await response.json();
-  return res.json(result);
 }
 
 async function handleGetProduct(
   req: VercelRequest,
   res: VercelResponse,
-  token: string,
-  shopId: string,
+  printify: Printify,
 ) {
   const { productId } = req.query as { productId: string };
 
-  const response = await fetch(
-    `https://api.printify.com/v1/shops/${shopId}/products/${productId}.json`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Get product failed: ${response.status} - ${error}`);
+  try {
+    const result = await printify.products.getOne(productId);
+    return res.json(result);
+  } catch (error) {
+    console.error("Get product failed:", error);
+    throw new Error(
+      `Get product failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
-
-  const result = await response.json();
-  return res.json(result);
 }
