@@ -102,45 +102,7 @@ function PublishModal({
 
         <div className="space-y-4">
           {!isPublishing && !isPublished && !error && (
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">Shirt Style</Label>
-                <ToggleGroup
-                  type="single"
-                  value={shirtStyle}
-                  onValueChange={(value) => {
-                    if (value) setShirtStyle(value as ShirtStyle);
-                  }}
-                  className="mt-2 w-full"
-                  variant="outline"
-                >
-                  <ToggleGroupItem
-                    value="standard"
-                    className="flex-1 flex-col gap-1 py-3"
-                  >
-                    <span className="font-medium">Standard</span>
-                    <span className="text-xs text-muted-foreground">
-                      {standardInfo.priceFormatted}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Comfort Colors
-                    </span>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="street"
-                    className="flex-1 flex-col gap-1 py-3"
-                  >
-                    <span className="font-medium">Street Style</span>
-                    <span className="text-xs text-muted-foreground">
-                      {streetInfo.priceFormatted} (+${(priceDiff / 100).toFixed(2)})
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Shaka Wear
-                    </span>
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-
+            <div className="space-y-4">
               <div>
                 <Label htmlFor="productName" className="text-sm font-medium">
                   Product Name
@@ -155,6 +117,43 @@ function PublishModal({
                 />
                 <p className="text-muted-foreground mt-1 text-xs">
                   {productName.length}/30 characters
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium">
+                  Shirt Style
+                  <span className="ml-2 font-normal text-muted-foreground">
+                    {shirtStyle === "street" ? streetInfo.priceFormatted : standardInfo.priceFormatted}
+                  </span>
+                </Label>
+                <ToggleGroup
+                  type="single"
+                  value={shirtStyle}
+                  onValueChange={(value) => {
+                    if (value) setShirtStyle(value as ShirtStyle);
+                  }}
+                  className="mt-2 flex w-full flex-col"
+                  variant="outline"
+                >
+                  <ToggleGroupItem
+                    value="standard"
+                    className="w-full justify-start"
+                  >
+                    <span className="text-sm">Standard</span>
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="street"
+                    className="w-full justify-start"
+                  >
+                    <span className="text-sm">Street Style</span>
+                  </ToggleGroupItem>
+                </ToggleGroup>
+                <p className="text-muted-foreground mt-1.5 text-xs">
+                  {shirtStyle === "street" 
+                    ? `Shaka Wear heavyweight tee (+$${(priceDiff / 100).toFixed(2)})`
+                    : "Comfort Colors standard tee"
+                  }
                 </p>
               </div>
             </div>
