@@ -100,10 +100,11 @@ export function useImageGeneration(
     base64Images?: string[],
     quality: Quality = "high",
     editResponseId?: string,
+    transparentBackground: boolean = false,
   ) => {
     const imagePrompt = `Generate an image for: ${prompt}.
      
-    IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE`;
+IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transparentBackground ? " WITH A TRANSPARENT BACKGROUND" : ""}`;
 
     let input: unknown;
 
@@ -116,7 +117,7 @@ export function useImageGeneration(
         },
         ...base64Images.map(base64Image => ({
           type: "input_image",
-          image_url: `data:image/jpeg;base64,${base64Image}`,
+          image_url: `data:image/png;base64,${base64Image}`,
         })),
       ];
 
@@ -143,7 +144,7 @@ export function useImageGeneration(
           size: "1024x1536",
           partial_images: QUALITY_LEVELS[quality].partial_images,
           moderation: "low",
-          background: "opaque",
+          background: transparentBackground ? "transparent" : "opaque",
           input_fidelity:
             base64Images && base64Images.length > 0 ? "high" : "low",
         },
@@ -156,6 +157,7 @@ export function useImageGeneration(
     prompt: string,
     base64Images?: string[],
     quality?: Quality,
+    transparentBackground?: boolean,
     editResponseId?: string,
     designId?: string,
   ) => {
@@ -167,6 +169,7 @@ export function useImageGeneration(
         base64Images,
         quality,
         editResponseId,
+        transparentBackground ?? false,
       );
       const stream = await openai.responses.create(
         requestConfig as Parameters<typeof openai.responses.create>[0],
@@ -339,8 +342,14 @@ export function useImageGeneration(
     prompt: string,
     base64Images?: string[],
     quality?: Quality,
+    transparentBackground?: boolean,
   ) => {
-    return performImageGeneration(prompt, base64Images, quality);
+    return performImageGeneration(
+      prompt,
+      base64Images,
+      quality,
+      transparentBackground,
+    );
   };
 
   const editImage = async (
@@ -353,6 +362,7 @@ export function useImageGeneration(
       newPrompt,
       undefined,
       quality,
+      undefined,
       originalResponseId,
       designId,
     );

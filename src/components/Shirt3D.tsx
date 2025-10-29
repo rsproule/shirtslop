@@ -159,6 +159,7 @@ export function Shirt3D({ imageUrl, texturePlacement }: Shirt3DProps) {
         texture.anisotropy = Math.max(1, 4); // Improve quality at angles
         texture.generateMipmaps = true;
         texture.colorSpace = THREE.SRGBColorSpace;
+        texture.premultiplyAlpha = true;
 
         resolve(texture);
       };
@@ -277,7 +278,8 @@ export function Shirt3D({ imageUrl, texturePlacement }: Shirt3DProps) {
               color: "#ffffff", // Use white to avoid color multiplication
               roughness: 0.6,
               metalness: 0.0,
-              transparent: false,
+              transparent: true,
+              alphaTest: 0.01,
               side: THREE.DoubleSide,
             });
           }

@@ -32,6 +32,7 @@ export function HomePage() {
     enhancedPrompt?: string,
     base64Images?: string[],
     quality?: Quality,
+    transparentBackground?: boolean,
   ) => {
     // Clear any previous errors
     setError(null);
@@ -44,7 +45,7 @@ export function HomePage() {
     // Use the enhanced prompt if provided, otherwise enhance it here
     const finalPrompt =
       enhancedPrompt || enhancePromptWithThemes(prompt, selectedThemes);
-    generateImage(finalPrompt, base64Images, quality);
+    generateImage(finalPrompt, base64Images, quality, transparentBackground);
   };
 
   const handleRetryGeneration = () => {
