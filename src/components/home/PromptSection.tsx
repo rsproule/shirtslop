@@ -23,7 +23,6 @@ interface PromptSectionProps {
     enhancedPrompt?: string,
     base64Images?: string[],
     quality?: Quality,
-    transparentBackground?: boolean,
   ) => void;
   onSelectFromHistory: (prompt: string) => void;
   createFullPrompt: (userPrompt: string, themes: string[]) => string;
@@ -42,7 +41,6 @@ export function PromptSection({
   const { addToFavorites } = useFavoriteThemes();
   const [images, setImages] = useState<string[]>([]);
   const [quality, setQuality] = useState<Quality>("high");
-  const [transparentBackground, setTransparentBackground] = useState(false);
 
   // Load quality preference from localStorage on mount
   useEffect(() => {
@@ -82,12 +80,7 @@ export function PromptSection({
 
     // Enhance prompt with selected themes before calling onGenerate
     const enhancedPrompt = enhancePromptWithThemes(prompt, selectedThemes);
-    onGenerate(
-      enhancedPrompt,
-      images.length > 0 ? images : undefined,
-      quality,
-      transparentBackground,
-    );
+    onGenerate(enhancedPrompt, images.length > 0 ? images : undefined, quality);
   };
 
   const handleSelectFromHistory = (selectedPrompt: string) => {
@@ -149,21 +142,6 @@ export function PromptSection({
 
             {/* Generate Button and Quality Selector - Far Right */}
             <div className="flex flex-shrink-0 items-center gap-2">
-              <label
-                className="flex cursor-pointer items-center gap-1.5 text-xs"
-                title="Toggle background transparency of design"
-              >
-                <input
-                  type="checkbox"
-                  checked={transparentBackground}
-                  onChange={e => setTransparentBackground(e.target.checked)}
-                  disabled={!user}
-                  className="h-3.5 w-3.5 cursor-pointer"
-                  aria-label="Transparent background"
-                  title="Transparent background"
-                />
-                <span className="text-muted-foreground">Transparent</span>
-              </label>
               <QualitySelector
                 quality={quality}
                 onQualityChange={handleQualityChange}

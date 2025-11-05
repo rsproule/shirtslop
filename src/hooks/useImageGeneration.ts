@@ -100,11 +100,10 @@ export function useImageGeneration(
     base64Images?: string[],
     quality: Quality = "high",
     editResponseId?: string,
-    transparentBackground: boolean = false,
   ) => {
     const imagePrompt = `Generate an image for: ${prompt}.
      
-IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transparentBackground ? " WITH A TRANSPARENT BACKGROUND" : ""}`;
+IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE`;
 
     let input: unknown;
 
@@ -144,7 +143,6 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transpare
           size: "1024x1536",
           partial_images: QUALITY_LEVELS[quality].partial_images,
           moderation: "low",
-          background: transparentBackground ? "transparent" : "opaque",
           input_fidelity:
             base64Images && base64Images.length > 0 ? "high" : "low",
         },
@@ -157,7 +155,6 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transpare
     prompt: string,
     base64Images?: string[],
     quality?: Quality,
-    transparentBackground?: boolean,
     editResponseId?: string,
     designId?: string,
   ) => {
@@ -169,7 +166,6 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transpare
         base64Images,
         quality,
         editResponseId,
-        transparentBackground ?? false,
       );
       const stream = await openai.responses.create(
         requestConfig as Parameters<typeof openai.responses.create>[0],
@@ -342,14 +338,8 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transpare
     prompt: string,
     base64Images?: string[],
     quality?: Quality,
-    transparentBackground?: boolean,
   ) => {
-    return performImageGeneration(
-      prompt,
-      base64Images,
-      quality,
-      transparentBackground,
-    );
+    return performImageGeneration(prompt, base64Images, quality);
   };
 
   const editImage = async (
@@ -362,7 +352,6 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE${transpare
       newPrompt,
       undefined,
       quality,
-      undefined,
       originalResponseId,
       designId,
     );
