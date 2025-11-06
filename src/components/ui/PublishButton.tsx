@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useShirtData } from "@/context/useShirtData";
 import { useShirtHistory } from "@/hooks/useShirtHistory";
 import { PRODUCT_DESCRIPTION_TEMPLATE } from "@/lib/productDescription";
@@ -127,28 +127,44 @@ function PublishModal({
                     {shirtStyle === "street" ? streetInfo.priceFormatted : standardInfo.priceFormatted}
                   </span>
                 </Label>
-                <ToggleGroup
-                  type="single"
+                <RadioGroup
                   value={shirtStyle}
-                  onValueChange={(value) => {
-                    if (value) setShirtStyle(value as ShirtStyle);
-                  }}
-                  className="mt-2 flex w-full flex-col"
-                  variant="outline"
+                  onValueChange={(value) => setShirtStyle(value as ShirtStyle)}
+                  className="mt-2 flex flex-col gap-2"
                 >
-                  <ToggleGroupItem
-                    value="standard"
-                    className="w-full justify-start"
+                  <Label
+                    htmlFor="standard"
+                    className={`flex cursor-pointer items-center justify-between rounded-lg border-2 bg-muted/30 p-3 transition-colors hover:bg-muted/50 ${
+                      shirtStyle === "standard"
+                        ? "border-primary bg-primary/10"
+                        : "border-muted"
+                    }`}
                   >
-                    <span className="text-sm">Standard</span>
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="street"
-                    className="w-full justify-start"
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="standard" id="standard" />
+                      <span className="text-sm font-medium">Standard</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {standardInfo.priceFormatted}
+                    </span>
+                  </Label>
+                  <Label
+                    htmlFor="street"
+                    className={`flex cursor-pointer items-center justify-between rounded-lg border-2 bg-muted/30 p-3 transition-colors hover:bg-muted/50 ${
+                      shirtStyle === "street"
+                        ? "border-primary bg-primary/10"
+                        : "border-muted"
+                    }`}
                   >
-                    <span className="text-sm">Street Style</span>
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="street" id="street" />
+                      <span className="text-sm font-medium">Street Style</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {streetInfo.priceFormatted}
+                    </span>
+                  </Label>
+                </RadioGroup>
                 <p className="text-muted-foreground mt-1.5 text-xs">
                   {shirtStyle === "street" 
                     ? `Shaka Wear heavyweight tee (+$${(priceDiff / 100).toFixed(2)})`
@@ -395,7 +411,6 @@ export function PublishButton() {
         user,
         shirtData.prompt,
         promptChain,
-        selectedShirtStyle,
       );
 
       // Update lifecycle to PUBLISHING before creating product
