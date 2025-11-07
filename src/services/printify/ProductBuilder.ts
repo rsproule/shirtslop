@@ -103,6 +103,8 @@ export class ProductBuilder {
     console.log("Placement:", placement);
 
     // Determine the actual position to send to Printify
+    // Shaka Wear (street style) uses _dtg suffix for positions
+    const positionSuffix = shirtStyle === "street" ? "_dtg" : "";
     let printPosition: string;
     let printScale: number;
     let printX: number;
@@ -110,14 +112,14 @@ export class ProductBuilder {
 
     switch (placement) {
       case "back":
-        printPosition = "back";
+        printPosition = `back${positionSuffix}`;
         printScale = shirtConfig.scale;
         printX = shirtConfig.x;
         printY = shirtConfig.y;
         break;
       case "front":
       default:
-        printPosition = "front";
+        printPosition = `front${positionSuffix}`;
         printScale = shirtConfig.scale;
         printX = shirtConfig.x;
         printY = shirtConfig.y;
