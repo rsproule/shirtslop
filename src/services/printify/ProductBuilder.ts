@@ -1,5 +1,6 @@
 // Note: createProductIdentifier is used by the main service, not directly here
 
+import type { ShirtStyle } from "./types";
 // Shirt configuration presets
 interface ShirtConfig {
   name: string;
@@ -94,13 +95,16 @@ export class ProductBuilder {
     description: string,
     uploadedImageId: string,
     placement: "front" | "back" = "front",
+    shirtStyle: ShirtStyle = "standard",
   ): CreateProductPayload {
-    const shirtConfig = SHIRT_CONFIGS.cc;
+    const shirtConfig = shirtStyle === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
 
     console.log("Creating product with shirtConfig", shirtConfig);
     console.log("Placement:", placement);
 
     // Determine the actual position to send to Printify
+    // Shaka Wear (street style) uses _dtg suffix for positions
+    const positionSuffix = shirtStyle === "street" ? "_dtg" : "";
     let printPosition: string;
     let printScale: number;
     let printX: number;
@@ -108,14 +112,14 @@ export class ProductBuilder {
 
     switch (placement) {
       case "back":
-        printPosition = "back";
+        printPosition = `back${positionSuffix}`;
         printScale = shirtConfig.scale;
         printX = shirtConfig.x;
         printY = shirtConfig.y;
         break;
       case "front":
       default:
-        printPosition = "front";
+        printPosition = `front${positionSuffix}`;
         printScale = shirtConfig.scale;
         printX = shirtConfig.x;
         printY = shirtConfig.y;
@@ -159,5 +163,28 @@ export class ProductBuilder {
    */
   static getShirtConfigs(): Record<string, ShirtConfig> {
     return SHIRT_CONFIGS;
+  }
+
+  /**
+   * Get shirt configuration by style
+   */
+  static getShirtConfig(style: ShirtStyle): ShirtConfig {
+    return style === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
+  }
+
+  /**
+   * Get display information for a shirt style
+   */
+  static getShirtStyleInfo(style: ShirtStyle): {
+    displayName: string;
+    price: number;
+    priceFormatted: string;
+  } {
+    const config = this.getShirtConfig(style);
+    return {
+      displayName: style === "street" ? "Street Style" : "Standard",
+      price: config.price,
+      priceFormatted: `$${(config.price / 100).toFixed(2)}`,
+    };
   }
 }
