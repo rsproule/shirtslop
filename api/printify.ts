@@ -67,10 +67,34 @@ async function handleUpload(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { imageUrl } = req.body as { imageUrl: string };
+  const { imageUrl, blobUrl } = req.body as {
+    imageUrl?: string;
+    blobUrl?: string;
+  };
 
-  // Extract base64 from data URL (data:image/png;base64,...)
-  const base64Data = imageUrl.split(",")[1];
+  let base64Data: string;
+
+  if (blobUrl) {
+    // Fetch image from Vercel Blob URL
+    console.log("📥 Fetching image from Blob URL:", blobUrl);
+    const blobResponse = await fetch(blobUrl);
+    if (!blobResponse.ok) {
+      throw new Error(
+        `Failed to fetch blob: ${blobResponse.status} - ${blobResponse.statusText}`,
+      );
+    }
+    const arrayBuffer = await blobResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    base64Data = buffer.toString("base64");
+    console.log("✅ Fetched blob, size:", buffer.length, "bytes");
+  } else if (imageUrl) {
+    // Legacy: Extract base64 from data URL (data:image/png;base64,...)
+    base64Data = imageUrl.split(",")[1];
+  } else {
+    return res.status(400).json({
+      error: "Either 'blobUrl' or 'imageUrl' must be provided",
+    });
+  }
 
   const payload = {
     file_name: "design.png",

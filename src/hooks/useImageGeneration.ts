@@ -8,6 +8,7 @@ import { useEchoOpenAI } from "@merit-systems/echo-react-sdk";
 import type { Stream } from "openai/core/streaming.mjs";
 import type { ResponseStreamEvent } from "openai/resources/responses/responses";
 import { useNavigate } from "react-router-dom";
+import { upload } from "@vercel/blob/client";
 
 type Quality = "high" | "medium" | "low";
 
@@ -62,6 +63,38 @@ export function useImageGeneration(
       }
     } catch (error) {
       console.error("Failed to update designId in context:", error);
+    }
+  };
+
+  // Upload image to Vercel Blob and return public URL
+  const uploadImageToBlob = async (
+    dataUrl: string,
+    imageHash: string,
+  ): Promise<string> => {
+    try {
+      console.log("☁️ Uploading image to Vercel Blob...");
+
+      // Convert data URL to File
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "design.png", { type: "image/png" });
+
+      // Upload to Blob with deterministic path based on hash
+      const blobPath = `designs/${imageHash}.png`;
+      const baseUrl = import.meta.env.DEV ? "http://localhost:3000" : "";
+      const handleUploadUrl = `${baseUrl}/api/blob/upload`;
+
+      const { url } = await upload(blobPath, file, {
+        access: "public",
+        contentType: "image/png",
+        handleUploadUrl,
+      });
+
+      console.log("✅ Image uploaded to Blob:", url);
+      return url;
+    } catch (error) {
+      console.error("❌ Failed to upload image to Blob:", error);
+      throw error;
     }
   };
 
@@ -173,9 +206,6 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE`;
 
       let hasNavigated = false;
       let responseId: string | undefined;
-      let lastPartialImage:
-        | { imageUrl: string; partialIndex: number }
-        | undefined;
 
       const processor = new ImageGenerationStreamProcessor({
         onResponseId: id => {
@@ -185,17 +215,14 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE`;
         onPartialImage: (imageUrl, partialIndex) => {
           console.log(`🖼️ Partial image received - Index: ${partialIndex}`);
 
-          // Store the last partial image
-          lastPartialImage = { imageUrl, partialIndex };
-
           const shirtData: ShirtData = {
             prompt,
             imageUrl,
             generatedAt: new Date().toISOString(),
-            isPartial: true, // Always partial until response.completed
+            isPartial: true,
             partialIndex,
             responseId,
-            designId, // Pass along the designId for versioning
+            designId,
           };
 
           setShirtData(shirtData);
@@ -206,98 +233,67 @@ IMPORTANT: DO NOT INCLUDE AN IMAGE ON A SHIRT. JUST INCLUDE THE IMAGE`;
             hasNavigated = true;
           }
         },
-        onResponseCompleted: async () => {
-          console.log(
-            "🎯 Response completed - finalizing with last partial image",
-          );
-          console.log("🆔 ResponseId available in completion:", responseId);
+        onResponseCompleted: () => {
+          // Stream completed - onFinalImage handles the final image processing
+          // This is just a signal that the stream is done
+        },
+        onFinalImage: async imageUrl => {
+          console.log("🎯 Final image received - uploading to Blob");
 
-          if (lastPartialImage) {
+          try {
+            // Upload image to Vercel Blob
+            const imageHash = await generateDataUrlHash(imageUrl);
+            const blobUrl = await uploadImageToBlob(imageUrl, imageHash);
+
             const finalData: ShirtData = {
               prompt,
-              imageUrl: lastPartialImage.imageUrl,
+              imageUrl: blobUrl, // Use Blob URL instead of data URL
               generatedAt: new Date().toISOString(),
+              responseId,
               isPartial: false,
               partialIndex: -1,
-              responseId,
-              designId, // Pass along the designId for versioning
+              designId,
             };
 
-            console.log("🎯 Final data being sent to onShirtComplete:", {
-              prompt: finalData.prompt,
-              responseId: finalData.responseId,
-              isPartial: finalData.isPartial,
-            });
-
+            // Update shirt data with final image (this renders it on the shirt)
             setShirtData(finalData);
             setIsLoading(false);
-            generateSmartTitle(prompt, lastPartialImage.imageUrl);
 
-            // Call the completion callback, which will save to history
-            // Wait for saving to complete before updating context
+            // Generate title and save to history after rendering
+            generateSmartTitle(prompt, blobUrl);
+
             if (onShirtComplete) {
               try {
-                console.log("📁 Calling onShirtComplete with finalData:", {
-                  prompt: finalData.prompt,
-                  responseId: finalData.responseId,
-                  designId: finalData.designId,
-                  isPartial: finalData.isPartial,
-                });
                 await onShirtComplete(finalData);
-                console.log("📁 onShirtComplete finished successfully");
-
-                // After saving, update the context with designId if it's a new design
                 if (!designId) {
-                  console.log(
-                    "📁 Updating context with designId for new design",
-                  );
                   await updateDesignIdInContext(finalData);
                 }
               } catch (error) {
                 console.error("Failed to save shirt or update context:", error);
               }
-            } else {
-              console.warn("📁 No onShirtComplete callback provided");
             }
-          } else {
-            console.warn(
-              "⚠️ Response completed but no partial images received",
+
+            if (!hasNavigated) {
+              navigate("/view");
+            }
+          } catch (error) {
+            console.error("Failed to upload image to Blob:", error);
+            // Fallback to using data URL if Blob upload fails
+            const finalData: ShirtData = {
+              prompt,
+              imageUrl,
+              generatedAt: new Date().toISOString(),
+              responseId,
+              isPartial: false,
+              partialIndex: -1,
+              designId,
+            };
+            setShirtData(finalData);
+            setIsLoading(false);
+            handleError(
+              "Failed to upload image to storage. Using temporary URL.",
+              error,
             );
-          }
-        },
-        onFinalImage: async imageUrl => {
-          console.log("🎯 Final image received via onFinalImage callback");
-          const finalData: ShirtData = {
-            prompt,
-            imageUrl,
-            generatedAt: new Date().toISOString(),
-            responseId,
-            isPartial: false,
-            partialIndex: -1,
-            designId, // Pass along the designId for versioning
-          };
-
-          setShirtData(finalData);
-          setIsLoading(false);
-          generateSmartTitle(prompt, imageUrl);
-
-          // Call the completion callback, which will save to history
-          // Wait for saving to complete before updating context
-          if (onShirtComplete) {
-            try {
-              await onShirtComplete(finalData);
-
-              // After saving, update the context with designId if it's a new design
-              if (!designId) {
-                await updateDesignIdInContext(finalData);
-              }
-            } catch (error) {
-              console.error("Failed to save shirt or update context:", error);
-            }
-          }
-
-          if (!hasNavigated) {
-            navigate("/view");
           }
         },
         onError: error => {

@@ -24,7 +24,6 @@ export class ImageGenerationStreamProcessor {
   async processStream(
     stream: Stream<ResponseStreamEvent>,
   ): Promise<string | undefined> {
-    console.log("Stream:", stream);
     try {
       for await (const event of stream) {
         await this.processEvent(event);
@@ -95,38 +94,17 @@ export class ImageGenerationStreamProcessor {
       }
     }
 
-    // Handle final images
-    if (event.type === "response.image_generation_call.completed") {
-      console.log("📡 Stream event: image_generation_call.complete");
-      if ("result" in event) {
-        const imageData = event.result;
-        console.log(`📡 Final image has data: ${!!imageData}`);
-        // console.log(`📡 Final image data length: ${imageData?.length || 0}`);
-        if (imageData) {
-          const imageUrl = `data:image/png;base64,${imageData}`;
-          this.callbacks.onFinalImage?.(imageUrl);
-        } else {
-          console.warn(`⚠️ Final image has no data`);
-        }
-      }
-    }
-
-    // Also check for the "completed" event type (without .complete suffix)
-    if (event.type === "response.image_generation_call.completed") {
-      console.log(
-        "📡 Stream event: image_generation_call.completed (alternative)",
-      );
-      if ("result" in event) {
-        const imageData = event.result;
-        console.log(`📡 Completed image has data: ${!!imageData}`);
-        console
-          .log
-          // `📡 Completed image data length: ${imageData?.length || 0}`,
-          ();
-        if (imageData) {
-          const imageUrl = `data:image/png;base64,${imageData}`;
-          this.callbacks.onFinalImage?.(imageUrl);
-        }
+    // Handle final image from output_item.done event
+    if (event.type === "response.output_item.done" && "item" in event) {
+      const item = (event as { item?: { type?: string; result?: string } })
+        .item;
+      if (
+        item?.type === "image_generation_call" &&
+        item?.result &&
+        typeof item.result === "string"
+      ) {
+        const imageUrl = `data:image/png;base64,${item.result}`;
+        this.callbacks.onFinalImage?.(imageUrl);
       }
     }
   }

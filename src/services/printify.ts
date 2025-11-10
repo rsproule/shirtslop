@@ -97,9 +97,14 @@ class PrintifyService {
       reader.onload = async () => {
         try {
           const dataUrl = reader.result as string;
-          const uploadResult = await this.makeRequest<PrintifyImage>("upload", {
-            imageUrl: dataUrl,
-          });
+
+          // Check if this is a Blob URL (starts with https://) or data URL
+          const isBlobUrl = dataUrl.startsWith("https://");
+
+          const uploadResult = await this.makeRequest<PrintifyImage>(
+            "upload",
+            isBlobUrl ? { blobUrl: dataUrl } : { imageUrl: dataUrl },
+          );
           resolve(uploadResult);
         } catch (error) {
           reject(error);
@@ -143,8 +148,21 @@ class PrintifyService {
     return { imageBlob, imageHash };
   }
 
-  private async uploadImageToService(imageBlob: Blob): Promise<PrintifyImage> {
+  private async uploadImageToService(imageUrl: string): Promise<PrintifyImage> {
     console.log("⬆️ Step 2: Uploading image to Printify...");
+
+    // If imageUrl is already a Blob URL, pass it directly to the API
+    if (imageUrl.startsWith("https://")) {
+      console.log("📤 Using Blob URL directly");
+      const uploadedImage = await this.makeRequest<PrintifyImage>("upload", {
+        blobUrl: imageUrl,
+      });
+      console.log("✅ Image uploaded successfully, ID:", uploadedImage.id);
+      return uploadedImage;
+    }
+
+    // Legacy: Convert Blob to data URL and upload
+    const imageBlob = await ImageProcessor.fetchImageAsBlob(imageUrl);
     const uploadedImage = await this.uploadImage(imageBlob);
     console.log("✅ Image uploaded successfully, ID:", uploadedImage.id);
     return uploadedImage;
@@ -251,8 +269,7 @@ class PrintifyService {
     try {
       // Step 1: Process image and generate hash
       onStatusUpdate?.("processing");
-      const { imageBlob, imageHash } =
-        await this.processImageAndCreateHash(imageUrl);
+      const { imageHash } = await this.processImageAndCreateHash(imageUrl);
 
       // Store draft record
       await ShirtDatabase.createDraftRecord(
@@ -265,7 +282,7 @@ class PrintifyService {
 
       // Step 2: Upload image
       onStatusUpdate?.("uploading");
-      const uploadedImage = await this.uploadImageToService(imageBlob);
+      const uploadedImage = await this.uploadImageToService(imageUrl);
 
       // Step 3: Create and publish product
       onStatusUpdate?.("creating");
