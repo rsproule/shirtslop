@@ -32,9 +32,9 @@ const SHIRT_CONFIGS: Record<string, ShirtConfig> = {
     blueprint_id: 706,
     print_provider_id: 99,
     price: 2500,
-    scale: 0.75,
+    scale: 0.625,
     x: 0.5,
-    y: 0.4,
+    y: 0.5,
     variants: [
       78994, 73199, 78993, 78962, 78991, 78964, 78961, 78963, 73203, 78992,
       73211, 73207, 78965, 73215, 78995,
