@@ -19,7 +19,7 @@ const SHIRT_CONFIGS: Record<string, ShirtConfig> = {
     blueprint_id: 1723,
     print_provider_id: 74,
     price: 3500,
-    scale: 0.8,
+    scale: 0.75,
     x: 0.5,
     y: 0.5,
     variants: [
@@ -32,7 +32,7 @@ const SHIRT_CONFIGS: Record<string, ShirtConfig> = {
     blueprint_id: 706,
     print_provider_id: 99,
     price: 2500,
-    scale: 0.5,
+    scale: 0.75,
     x: 0.5,
     y: 0.4,
     variants: [
