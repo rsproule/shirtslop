@@ -12,22 +12,32 @@ export async function generateImageHash(imageBlob: Blob): Promise<string> {
 }
 
 /**
- * Generate a hash from a data URL
+ * Generate a hash from a data URL or regular URL (including Blob URLs)
  */
-export async function generateDataUrlHash(dataUrl: string): Promise<string> {
-  // Extract base64 data from data URL
-  const base64Data = dataUrl.split(",")[1];
-  const binaryData = atob(base64Data);
-  const uint8Array = new Uint8Array(binaryData.length);
+export async function generateDataUrlHash(imageUrl: string): Promise<string> {
+  // Check if it's a data URL (data:image/png;base64,...)
+  if (imageUrl.startsWith("data:")) {
+    // Extract base64 data from data URL
+    const base64Data = imageUrl.split(",")[1];
+    const binaryData = atob(base64Data);
+    const uint8Array = new Uint8Array(binaryData.length);
 
-  for (let i = 0; i < binaryData.length; i++) {
-    uint8Array[i] = binaryData.charCodeAt(i);
+    for (let i = 0; i < binaryData.length; i++) {
+      uint8Array[i] = binaryData.charCodeAt(i);
+    }
+
+    const hashBuffer = await crypto.subtle.digest("SHA-256", uint8Array);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex;
   }
 
-  const hashBuffer = await crypto.subtle.digest("SHA-256", uint8Array);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-  return hashHex;
+  // For regular URLs (including Blob URLs), fetch and hash the blob
+  const response = await fetch(imageUrl);
+  const blob = await response.blob();
+  return generateImageHash(blob);
 }
 
 import { db, ImageLifecycleState } from "./db";

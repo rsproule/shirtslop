@@ -56,7 +56,7 @@ export class ImageProcessor {
               reject(new Error("Failed to compress image"));
             }
           },
-          "image/jpeg",
+          "image/png",
           quality,
         );
       };
