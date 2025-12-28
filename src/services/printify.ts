@@ -10,6 +10,7 @@ import type {
   PrintifyImage,
   PrintifyProduct,
   ShirtCreationResult,
+  ShirtStyle,
 } from "./printify/types";
 
 class PrintifyService {
@@ -156,8 +157,10 @@ class PrintifyService {
     uploadedImageId: string,
     imageHash: string,
     placement: "front" | "back" = "front",
+    shirtStyle: ShirtStyle = "standard",
   ): Promise<PrintifyProduct> {
     console.log("🏭 Step 3: Creating product on Printify...");
+    console.log("👕 Shirt style:", shirtStyle);
     const identifier = createProductIdentifier(imageHash);
     const productDescription = ProductBuilder.createDescription(
       identifier,
@@ -168,6 +171,7 @@ class PrintifyService {
       productDescription,
       uploadedImageId,
       placement,
+      shirtStyle,
     );
 
     const product = await this.createProduct(payload);
@@ -235,6 +239,7 @@ class PrintifyService {
     productName: string,
     description: string = "",
     placement: "front" | "back" = "front",
+    shirtStyle: ShirtStyle = "standard",
     onStatusUpdate?: (
       status:
         | "processing"
@@ -247,6 +252,7 @@ class PrintifyService {
     console.log("🚀 Starting shirt creation process...");
     console.log("📝 Original prompt:", prompt);
     console.log("📍 Placement:", placement);
+    console.log("👕 Shirt style:", shirtStyle);
 
     try {
       // Step 1: Process image and generate hash
@@ -275,6 +281,7 @@ class PrintifyService {
         uploadedImage.id,
         imageHash,
         placement,
+        shirtStyle,
       );
 
       // Step 4: Wait for sync and get updated details
