@@ -142,7 +142,10 @@ function PublishModal({
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="standard" id="standard" />
-                      <span className="text-sm font-medium">Standard</span>
+                      <div>
+                        <span className="text-sm font-medium">Standard</span>
+                        <p className="text-xs text-muted-foreground">Comfort Colors &middot; soft, relaxed fit</p>
+                      </div>
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {standardInfo.priceFormatted}
@@ -158,7 +161,10 @@ function PublishModal({
                   >
                     <div className="flex items-center gap-3">
                       <RadioGroupItem value="street" id="street" />
-                      <span className="text-sm font-medium">Street Style</span>
+                      <div>
+                        <span className="text-sm font-medium">Street Style</span>
+                        <p className="text-xs text-muted-foreground">Shaka Wear &middot; heavyweight, oversized</p>
+                      </div>
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {streetInfo.priceFormatted}
@@ -411,6 +417,7 @@ export function PublishButton() {
         user,
         shirtData.prompt,
         promptChain,
+        selectedShirtStyle,
       );
 
       // Update lifecycle to PUBLISHING before creating product

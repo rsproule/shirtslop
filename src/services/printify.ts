@@ -165,6 +165,7 @@ class PrintifyService {
     const productDescription = ProductBuilder.createDescription(
       identifier,
       description,
+      shirtStyle,
     );
     const payload = ProductBuilder.createProductPayload(
       productName,

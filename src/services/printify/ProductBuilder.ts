@@ -80,11 +80,15 @@ export class ProductBuilder {
   static createDescription(
     identifier: string,
     customDescription?: string,
+    shirtStyle: ShirtStyle = "standard",
   ): string {
-    return (
-      customDescription ||
-      `Created on <a href="https://shirtslop.com" target="_blank">https://shirtslop.com</a>\n\nShirtSlop Tees\nSo Soft. So Shirt. So Slop.\n\nAt ShirtSlop, we take your ideas, inside jokes, and designs — and print them on Comfort Colors tees.\n\nProduct Details:\n– Printed on 100% ring-spun cotton Comfort Colors tees\n– Pre-shrunk, soft-washed, garment-dyed fabric\n– Relaxed fit with vintage fade\n– Double-stitched for durability\n– Unisex sizing: comfortable, built for slopping\n\nID: ${identifier}`
-    );
+    if (customDescription) return customDescription;
+
+    if (shirtStyle === "street") {
+      return `Created on <a href="https://shirtslop.com" target="_blank">https://shirtslop.com</a>\n\nShirtSlop Tees\nSo Soft. So Shirt. So Slop.\n\nAt ShirtSlop, we take your ideas, inside jokes, and designs — and print them on Shaka Wear heavyweight tees.\n\nProduct Details:\n– Printed on Shaka Wear Max Heavyweight 7.5 oz tees\n– 100% cotton, extra thick and durable\n– Oversized streetwear fit\n– Double-stitched for durability\n– Unisex sizing: comfortable, built for slopping\n\nID: ${identifier}`;
+    }
+
+    return `Created on <a href="https://shirtslop.com" target="_blank">https://shirtslop.com</a>\n\nShirtSlop Tees\nSo Soft. So Shirt. So Slop.\n\nAt ShirtSlop, we take your ideas, inside jokes, and designs — and print them on Comfort Colors tees.\n\nProduct Details:\n– Printed on 100% ring-spun cotton Comfort Colors tees\n– Pre-shrunk, soft-washed, garment-dyed fabric\n– Relaxed fit with vintage fade\n– Double-stitched for durability\n– Unisex sizing: comfortable, built for slopping\n\nID: ${identifier}`;
   }
 
   /**
