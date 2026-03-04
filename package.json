@@ -39,6 +39,7 @@
     "motion": "^12.23.12",
     "openai": "^5.11.0",
     "posthog-js": "^1.261.8",
+    "printify-sdk-js": "^1.4.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.61.1",
