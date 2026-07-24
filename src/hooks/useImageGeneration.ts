@@ -144,8 +144,6 @@ export function useImageGeneration(
           partial_images: QUALITY_LEVELS[quality].partial_images,
           moderation: "low",
           background: "opaque",
-          input_fidelity:
-            base64Images && base64Images.length > 0 ? "high" : "low",
         },
       ],
     } as unknown; // Type assertion for custom Echo API format
