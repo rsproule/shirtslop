@@ -6,6 +6,7 @@ interface ShirtConfig {
   name: string;
   blueprint_id: number;
   print_provider_id: number;
+  position_suffix: string;
   variants: number[];
   price: number;
   scale: number;
@@ -13,13 +14,16 @@ interface ShirtConfig {
   y: number;
 }
 
-const SHIRT_CONFIGS: Record<string, ShirtConfig> = {
-  shaka: {
-    name: "Streetwear Style Baggy T-Shirt",
+const SHIRT_CONFIGS: Record<ShirtStyle, ShirtConfig> = {
+  street: {
+    // Original ShirtSlop shirt from commit aeeffe3: Shaka Wear SHGDD.
+    name: "Shaka Wear Unisex Garment-Dyed Drop-Shoulder T-Shirt",
     blueprint_id: 1723,
     print_provider_id: 74,
+    position_suffix: "_dtg",
     price: 3500,
-    scale: 0.75,
+    // Original optimized Shaka payload from commit aeeffe3 (matched the bash setup).
+    scale: 0.6,
     x: 0.5,
     y: 0.5,
     variants: [
@@ -27,10 +31,11 @@ const SHIRT_CONFIGS: Record<string, ShirtConfig> = {
       118102, 118106, 118107,
     ],
   },
-  cc: {
+  standard: {
     name: "Comfort Colors T-Shirt",
     blueprint_id: 706,
     print_provider_id: 99,
+    position_suffix: "",
     price: 2500,
     scale: 0.625,
     x: 0.5,
@@ -97,14 +102,14 @@ export class ProductBuilder {
     placement: "front" | "back" = "front",
     shirtStyle: ShirtStyle = "standard",
   ): CreateProductPayload {
-    const shirtConfig = shirtStyle === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
+    const shirtConfig = SHIRT_CONFIGS[shirtStyle];
 
     console.log("Creating product with shirtConfig", shirtConfig);
     console.log("Placement:", placement);
 
     // Determine the actual position to send to Printify
-    // Shaka Wear (street style) uses _dtg suffix for positions
-    const positionSuffix = shirtStyle === "street" ? "_dtg" : "";
+    // The Shaka Wear drop-shoulder blueprint uses DTG-specific positions.
+    const positionSuffix = shirtConfig.position_suffix;
     let printPosition: string;
     let printScale: number;
     let printX: number;
@@ -161,7 +166,7 @@ export class ProductBuilder {
   /**
    * Get available shirt configurations
    */
-  static getShirtConfigs(): Record<string, ShirtConfig> {
+  static getShirtConfigs(): Record<ShirtStyle, ShirtConfig> {
     return SHIRT_CONFIGS;
   }
 
@@ -169,7 +174,7 @@ export class ProductBuilder {
    * Get shirt configuration by style
    */
   static getShirtConfig(style: ShirtStyle): ShirtConfig {
-    return style === "street" ? SHIRT_CONFIGS.shaka : SHIRT_CONFIGS.cc;
+    return SHIRT_CONFIGS[style];
   }
 
   /**
